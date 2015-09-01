@@ -1,0 +1,99 @@
+
+body {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background-color: white;
+}
+
+/* hide upload button */
+#upload {
+  position: absolute;
+  opacity: 0.3;
+}
+
+#status {
+	font-weight: bold;
+}
+
+.centered {
+  text-align: center;
+}
+
+.card.table {
+  padding: 0;
+}
+
+.flaticon-box2:before {
+    font-size: 16pt;
+}
+
+.flaticon-google26:before {
+    font-size: 16pt;
+    margin-left: 0;
+}
+
+
+#dropbox {
+	xbackground-color: silver;
+	border: 5px dotted #c0c0c0;
+	border-radius: 15px;
+	height: 90px;
+	margin: 15px;
+	text-align: center;
+	padding-top: 25px;
+	cursor: pointer;
+}
+
+#dropbox.dragging, #dropbox:hover {
+	background-color: #dbdbdb;
+	border: 5px dotted #7a7a7a;
+}
+
+
+.header, .footer {
+  padding-left: 15px;
+  padding-right: 15px;
+  text-align: center;
+}
+
+/* Custom page header  */
+.header {
+  border-bottom: 1px solid #e5e5e5;
+}
+/* Make the masthead heading the same height as the navigation  */
+.header h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 40px;
+  padding-bottom: 19px;
+}
+
+/* Custom page footer */
+.footer {
+  padding-top: 19px;
+  color: #777;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* Customize container */
+@media (min-width: 768px) {
+  .container {
+    max-width: 730px;
+  }
+}
+
+
+
+
+/* from bootstrap */
+*, *:before, *:after {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.container {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
