@@ -51,7 +51,6 @@
 		};
 
 		dom.status.innerHTML = "Reading file " + file.name + " (" + file.size + " bytes)";
-
 		reader.readAsText(file);
 	}
 
