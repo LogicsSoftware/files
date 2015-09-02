@@ -12,10 +12,33 @@
 		"status": doc.getElementById("status")
 	};
 	
+	function showStatus(html) {
+		//console.log(html);
+		if (html) {
+			dom.status.innerHTML += html + "<br>";
+		} else {
+			dom.status.innerHTML = "";			
+		}
+	}
+	
+	/**
+	 * Helper: factored out common parts.
+	 * @param {function} fnc
+	 * @param {any} par
+	 */
+	function next(fnc, par) {
+		window.setTimeout(function() {
+			try {
+				fnc(par);
+			} catch (e) {
+				showStatus("ERROR " + e);
+			}
+		}, 0);
+	}
+	
 	function handleFiles(files) {
 		if (files && files.length > 0) {
 			var file = files[0];
-			dom.status.innerHTML = "Preparing file " + file.name + " (" + file.size + " bytes)";
 			handleFile(file);
 		}
 	}
@@ -38,73 +61,134 @@
 
 				result.times[1] = Date.now();
 				result.times[0] = result.times[1] - result.times[0];
-				console.log("reader: " + result.times[0] + "ms, data.length=" + result.data.length + "bytes");
+				showStatus("reader: " + result.times[0] + "ms, data.length=" + result.data.length + "bytes");
 
-				processJson(result);
-
-				dom.status.innerHTML = "Ready file " + file.name + " (" + file.size + " bytes)";
+				next(parseJson, result);
+				//showStatus("Ready file " + file.name + " (" + file.size + " bytes)");
 			} catch (e) {
-				dom.status.innerHTML = "ERROR " + e;
-			}
-			
-			console.log("summary times", result.times);
+				showStatus("ERROR " + e);
+			}			
 		};
 
-		dom.status.innerHTML = "Reading file " + file.name + " (" + file.size + " bytes)";
-		reader.readAsText(file);
-	}
-
-	function handleDragOver(eventObj) {
-		eventObj.stopPropagation();
-		eventObj.preventDefault();
-		eventObj.dataTransfer.dropEffect = "copy";
-	}
-
-	function handleFileUpload(eventObj) {
-		handleFiles(eventObj.target.files);
-	}
-
-	function handleFileSelect(eventObj) {
-		eventObj.stopPropagation();
-		eventObj.preventDefault();
-		handleFiles(eventObj.dataTransfer.files);
-		dom.dropbox.className = "";
+		showStatus();
+		showStatus("reading file: " + file.name + " (" + file.size + "bytes)");
+		next(function() {
+			reader.readAsText(file);
+		});
 	}
 	
+	//
 	// event handlers
-
-	dom.upload.addEventListener('change', handleFileUpload, false);
-
+	//
+	
+	dom.upload.addEventListener('change', function handleFileUpload(eventObj) {
+		handleFiles(eventObj.target.files);
+	}, false);
 	dom.dropbox.onclick = function () {
 		dom.upload.click();
 	};
 
-
-	dom.dropbox.addEventListener("dragover", handleDragOver, false);
-	dom.dropbox.addEventListener("drop", handleFileSelect, false);
-	dom.dropbox.addEventListener("dragenter", function () {
+//	dom.dropbox.addEventListener("dragenter", function () {
+//		dom.dropbox.className = "dragging";
+//	}, false);
+	dom.dropbox.addEventListener("dragover", function handleDragOver(eventObj) {
+		eventObj.stopPropagation();
+		eventObj.preventDefault();
+		eventObj.dataTransfer.dropEffect = "copy";
 		dom.dropbox.className = "dragging";
-	}, false);
-	dom.dropbox.addEventListener("dragend", function () {
-		dom.dropbox.className = "";
 	}, false);
 	dom.dropbox.addEventListener("dragleave", function () {
 		dom.dropbox.className = "";
 	}, false);
+	
+	dom.dropbox.addEventListener("drop", function handleFileSelect(eventObj) {
+		eventObj.stopPropagation();
+		eventObj.preventDefault();
+		handleFiles(eventObj.dataTransfer.files);
+		dom.dropbox.className = "";
+	}, false);
+	dom.dropbox.addEventListener("dragend", function () {
+		dom.dropbox.className = "";
+	}, false);
 
 
-	function processJson(result) {
+	//
+	// processing functions
+	//
+	
+	function parseJson(result) {
 		var json = JSON.parse(result.data);
 		result.json = json.locations ? json : { locations: json };
-		
+
 		result.times[2] = Date.now();
 		result.times[1] = result.times[2] - result.times[1];
-		console.log("json: " + result.times[1] + "ms, json.locations.length=" + result.json.locations.length);
-		
-		processLocations(result);
+		showStatus("json: " + result.times[1] + "ms, json.locations.length=" + result.json.locations.length);
+
+		next(sliceTimes);
 	}
 	
-	function processLocations(result) {
+	function sliceTimes(start, stop) {
+		var result = window.result;
+		var loc = result.json.locations;
+		
+		start = start || "2015-09-01";
+		var startMillis = (new Date(start)).getTime();
+		stop = stop || "2015-09-02";
+		var stopMillis = (new Date(stop)).getTime();
+		var startIx = -1;
+		var stopIx = -1;
+
+		// find slice; note: location data are time reversed!
+		var i, iMax = loc.length;
+		for (i = 0; i < iMax && loc[i].timestampMs > stopMillis; i++) { }
+		startIx = i;
+		for ( ; i < iMax && loc[i].timestampMs >= startMillis; i++) { }
+		stopIx = i;
+		result.slice = loc.slice(startIx, stopIx);
+		result.slice.reverse();	// now ascending location timestamps
+		
+		result.times[3] = Date.now();
+		result.times[2] = result.times[3] - result.times[2];
+		showStatus("slice: " + result.times[2] + "ms, locations=" + result.slice.length);
+		
+		next(showLines);
+	}
+	
+	function showLines() {
+		var result = window.result;
+		var loc = result.slice;
+		var millis;
+		result.lines = [];
+		var count;
+		
+		result.slice.forEach(function(loc, ix) {
+			millis = +loc.timestampMs;
+			//loc.timestamp = formatDate(millis) + " " + formatTime(millis);
+			result.lines.push(formatTime(millis) + " " + loc.latitudeE7 + "/" + loc.longitudeE7 + " (" + loc.accuracy + ")");
+			
+			if (loc.activitys) {
+				loc.activitys.forEach(function(activity) {
+					millis = +activity.timestampMs;
+					//activity.timestamp = formatDate(millis) + " " + formatTime(millis);
+					var line = "             " + formatTime(millis) + " ";
+					if (activity.activities) {
+						activity.activities.forEach(function(act){
+							line += act.type + ":" + act.confidence + " ";
+						});
+					}
+					result.lines.push(line);
+				});
+			}
+		});
+		count = result.lines.length;
+		result.lines = result.lines.join("\n");
+
+		result.times[4] = Date.now();
+		result.times[3] = result.times[4] - result.times[3];
+		showStatus("lines: " + result.times[3] + "ms, locations=" + result.slice.length + ", lines=" + count + " (" + result.lines.length + "bytes)");
+	}
+
+	function makeObject(result) {
 		result.loc = { };
 		
 		result.json.locations.forEach(function(loc, ix){
@@ -118,15 +202,23 @@
 		
 		result.times[3] = Date.now();
 		result.times[2] = result.times[3] - result.times[2];
-		console.log("locations: " + result.times[2] + "ms, locations=" + Object.keys(result.loc).length);
+		showStatus("object: " + result.times[2] + "ms, locations=" + Object.keys(result.loc).length);
 		
-		showLoc();
+		next(showLoc);
 	}
 	
 	function showLoc(millis) {
 		var result = window.result;
 		millis = millis || 1440763516780;
 		result.times[3] = Date.now();
+		
+		if (typeof millis === "string") {
+			// assume correct format, such as "2015-09-02 13:55:09"
+			console.log(millis);
+			millis = (new Date(millis)).getTime();
+			//millis /= 1000;
+			console.log(millis);
+		}
 		
 		var res = result.loc[millis];
 

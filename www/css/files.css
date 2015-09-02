@@ -8,7 +8,7 @@ body {
 /* hide upload button */
 #upload {
   position: absolute;
-  opacity: 0.3;
+  opacity: 0.0;
 }
 
 #status {
