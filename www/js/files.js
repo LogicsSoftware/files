@@ -5,11 +5,11 @@
  */
 
 	var global = window;
-    var doc = global.document;
+	var doc = global.document;
 	var dom = {
-      "dropbox": doc.getElementById("dropbox"),
-      "upload": doc.getElementById("upload"),
-      "status": doc.getElementById("status")
+		"dropbox": doc.getElementById("dropbox"),
+		"upload": doc.getElementById("upload"),
+		"status": doc.getElementById("status")
     };
 	
 	function handleFiles(files) {
@@ -21,7 +21,7 @@
 	}
 
 	function handleFile(file) {
-		console.log(file.name, file.size, file);
+		console.log("file=" + file.name + " (" + file.size + "bytes)", file);
 		var reader, data;
 		reader = new global.FileReader();
 
@@ -32,19 +32,22 @@
 				data: null
 			};
 			window.result = result;
+
+			try {
+				result.data = eventObj.target.result;
+
+				result.times[1] = Date.now();
+				result.times[0] = result.times[1] - result.times[0];
+				console.log("reader: " + result.times[0] + "ms, data.length=" + result.data.length + "bytes");
+
+				processJson(result);
+
+				dom.status.innerHTML = "Ready file " + file.name + " (" + file.size + " bytes)";
+			} catch (e) {
+				dom.status.innerHTML = "ERROR " + e;
+			}
 			
-			result.data = eventObj.target.result;
-			result.times[1] = Date.now();
-			result.times[0] = result.times[1] - result.times[0];
-			console.log("times reader", result.times);
-			console.log("data.length", result.data.length);
-			
-			processJson(result);
-			
-			console.log(result.times);
-			console.log(result.file);
-			//console.log(result);
-			dom.status.innerHTML = "Ready file " + file.name + " (" + file.size + " bytes)";
+			console.log("summary times", result.times);
 		};
 
 		dom.status.innerHTML = "Reading file " + file.name + " (" + file.size + " bytes)";
@@ -92,36 +95,32 @@
 
 
 	function processJson(result) {
+		
+		var json = JSON.parse(result.data);
+		result.json = json.locations ? json : { locations: json };
+		
 		result.times[2] = Date.now();
-		try {
-			result.json = JSON.parse(result.data);
-			result.times[1] = result.times[2] - result.times[1];
-			console.log("times json", result.times);
-			console.log("json.length", result.json.length);
-			processLocations(result);
-		} catch (e) {
-			dom.status.innerHTML = "ERROR " + e;
-			return;
-		}
+		result.times[1] = result.times[2] - result.times[1];
+		console.log("json: " + result.times[1] + "ms, json.locations.length=" + result.json.locations.length);
+		
+		processLocations(result);
 	}
 	
 	function processLocations(result) {
-		result.times[3] = Date.now();
 		result.loc = { };
 		
-		var arr = result.json.locations || result.json;
-		arr.forEach(function(loc, ix){
+		result.json.locations.forEach(function(loc, ix){
 			var millis = loc.timestampMs;
 			if (result.loc[millis]) {
-				console.log("DUPLICATE " + millis, result.loc[millis], loc);
+				console.log("Location duplicate=" + millis, result.loc[millis], loc);
 			} else {
 				result.loc[millis] = loc;
 			}
 		});
 		
+		result.times[3] = Date.now();
 		result.times[2] = result.times[3] - result.times[2];
-		console.log("times loc", result.times);
-		console.log("result.loc.length", Object.keys(result.loc).length);
+		console.log("locations: " + result.times[2] + "ms, locations=" + Object.keys(result.loc).length);
 		
 		showLoc();
 	}
@@ -129,12 +128,13 @@
 	function showLoc(millis) {
 		var result = window.result;
 		millis = millis || 1440763516780;
-		result.times[4] = Date.now();	
+		result.times[3] = Date.now();
 		
 		var res = result.loc[millis];
+
+		result.times[4] = Date.now();
 		result.times[3] = result.times[4] - result.times[3];		
-		console.log("times show", result.times);
-		console.log("loc[" + millis + "]", res);
+		console.log("show: " + result.times[3] + "ms, loc[" + millis + "]", res);
 	}
 
 	/**
