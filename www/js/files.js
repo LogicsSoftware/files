@@ -10,7 +10,7 @@
 		"dropbox": doc.getElementById("dropbox"),
 		"upload": doc.getElementById("upload"),
 		"status": doc.getElementById("status")
-    };
+	};
 	
 	function handleFiles(files) {
 		if (files && files.length > 0) {
@@ -95,7 +95,6 @@
 
 
 	function processJson(result) {
-		
 		var json = JSON.parse(result.data);
 		result.json = json.locations ? json : { locations: json };
 		
