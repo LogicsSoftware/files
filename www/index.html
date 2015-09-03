@@ -8,30 +8,57 @@
 	</head>
 	
 <body>
-    <div class="header">
-      <h3>Files</h3>
-    </div>
     <div class="container">
+		<div class="header">
+			<h3>Process Google location.json File</h3>
+		</div>
 		
-		<div class="row init">
-			<div class="col-md-12">
-				<div class="card" style="">
-					<input type="file" id="upload">
-					<div id="dropbox">
-						teaser text
-					</div>
-				</div>
+		<div class="card">
+			<input type="file" id="upload">
+			<div id="dropbox">
+				teaser text
 			</div>
 		</div>
-      
-		<div class="row init running">
-			<div class="col-md-12">
-				<div class="card">
-					<div class="card-body" id="status">
-						Select File
-					</div>
-					<br><br>
-				</div>
+		
+		<div class="card">
+			<div id="status"></div>
+		</div>
+	
+		<div class="card">
+			<table id="select">
+				<tr>
+					<td>Set start date:</td>
+					<td><input id="startDate" type="date"></td>
+					<td><input id="startTime" type="time"></td>
+				</tr>
+				<tr>
+					<td>Set end date:</td>
+					<td><input id="endDate" type="date"></td>
+					<td><input id="endTime" type="time"></td>
+				</tr>
+				<tr>
+					<td>Reset dates:</td>
+					<td colspan="2">
+						<button id="setPrev">&lt; day</button>
+						<button id="setInitial">file dates</button>
+						<button id="setNext">day &gt;</button>
+					</td>
+				</tr>
+				<tr>
+					<td><button id="extract">Extract</button></td>
+					<td id="extractMsg" colspan="2">
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div id="taDiv" class="card">
+			<div>
+				<button id="display">Show Locations</button>
+				<span id="taMsg"></span>
+			</div>
+			<div>
+				<textarea id="text"></textarea>
 			</div>
 		</div>
 	
