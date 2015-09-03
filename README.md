@@ -1,1 +1,1 @@
-# files
+# Show Google locations.json file
