@@ -23,18 +23,8 @@ body {
   padding: 0;
 }
 
-.flaticon-box2:before {
-    font-size: 16pt;
-}
-
-.flaticon-google26:before {
-    font-size: 16pt;
-    margin-left: 0;
-}
-
-
 #dropbox {
-	xbackground-color: silver;
+	font-weight: bold;
 	border: 5px dotted #c0c0c0;
 	border-radius: 15px;
 	height: 90px;
@@ -43,12 +33,11 @@ body {
 	padding-top: 25px;
 	cursor: pointer;
 }
-
-#dropbox.dragging, #dropbox:hover {
+#dropbox.dragging, #dropbox.active, #dropbox:hover {
 	background-color: #dbdbdb;
 	border: 5px dotted #7a7a7a;
+	color: red;
 }
-
 
 .header, .footer {
   padding-left: 15px;

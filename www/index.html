@@ -7,11 +7,22 @@
 		<link rel="stylesheet" href="css/files.css">
 	</head>
 	
-  <body>
+<body>
     <div class="header">
       <h3>Files</h3>
     </div>
     <div class="container">
+		
+		<div class="row init">
+			<div class="col-md-12">
+				<div class="card" style="">
+					<input type="file" id="upload">
+					<div id="dropbox">
+						teaser text
+					</div>
+				</div>
+			</div>
+		</div>
       
 		<div class="row init running">
 			<div class="col-md-12">
@@ -23,60 +34,7 @@
 				</div>
 			</div>
 		</div>
-		
-      <div class="row finished" style="display: none;">
-        <div class="col-md-12">
-          <div class="card">
-            <div id="country_chart"></div>
-          </div>
-        </div>
-      </div>
-      <div class="row finished" style="display: none;">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-heading simple">km per date</div>
-            <div id="date_chart"></div>
-          </div>
-        </div>
-      </div>
-      <div class="row finished" style="display: none;">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-heading simple">km per weekday</div>
-            <div id="weekday_chart"></div>
-          </div>
-        </div>
-      </div>
-      <div class="row finished" style="display: none;">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-heading simple">km per hour</div>
-            <div id="hour_chart"></div>
-          </div>
-        </div>
-      </div>
-      <div class="row finished" style="display: none;">
-        <div class="col-md-6">
-          <div class="card table">
-            <div id="countries"></div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card table">
-            <div id="cities"></div>
-          </div>
-        </div>
-      </div>
-		
-      <div class="row init">
-        <div class="col-md-12">
-          <div class="card" style="">
-            <input type="file" id="upload">
-            <div id="dropbox">
-				<b>Click, or drag JSON file into the box</b>
-			</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <script src="js/files.js"></script>
+	
+	</div>
+	<script src="js/files.js"></script>
+</body>

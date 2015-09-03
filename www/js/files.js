@@ -4,14 +4,63 @@
  * and open the template in the editor.
  */
 
-	var global = window;
-	var doc = global.document;
+	//
+	// main
+	//
+
 	var dom = {
-		"dropbox": doc.getElementById("dropbox"),
-		"upload": doc.getElementById("upload"),
-		"status": doc.getElementById("status")
+		"dropbox": window.document.getElementById("dropbox"),
+		"upload": window.document.getElementById("upload"),
+		"status": window.document.getElementById("status")
 	};
+	var result = null;
 	
+	addEventListeners();
+	next();	// reset
+	
+	//
+	// GUI
+	//
+	
+	function addEventListeners() {
+		// helper
+		function handleFiles(files) {
+			if (files && files.length > 0) {
+				var file = files[0];
+				readFile(file);
+			}
+		}
+		
+		dom.upload.addEventListener('change', function handleFileUpload(evt) {
+			handleFiles(evt.target.files);
+		}, false);
+		dom.dropbox.onclick = function () {
+			dom.upload.click();
+		};
+
+		dom.dropbox.addEventListener("dragover", function handleDragOver(evt) {
+			evt.stopPropagation();
+			evt.preventDefault();
+			evt.dataTransfer.dropEffect = "copy";
+			dom.dropbox.classList.add("dragging");
+			//console.log(evt);
+		}, false);
+		dom.dropbox.addEventListener("dragleave", function () {
+			dom.dropbox.classList.remove("dragging");
+		}, false);
+
+		dom.dropbox.addEventListener("drop", function handleFileSelect(evt) {
+			evt.stopPropagation();
+			evt.preventDefault();
+			handleFiles(evt.dataTransfer.files);
+			dom.dropbox.classList.remove("dragging");
+		}, false);
+		dom.dropbox.addEventListener("dragend", function (evt) {
+			dom.dropbox.classList.remove("dragging");
+			console.log(evt);
+		}, false);
+	}
+
 	function showStatus(html) {
 		//console.log(html);
 		if (html) {
@@ -21,102 +70,73 @@
 		}
 	}
 	
-	/**
-	 * Helper: factored out common parts.
-	 * @param {function} fnc
-	 * @param {any} par
-	 */
-	function next(fnc, par) {
-		window.setTimeout(function() {
-			try {
-				fnc(par);
-			} catch (e) {
-				showStatus("ERROR " + e);
-			}
-		}, 0);
-	}
+	//
+	// async control
+	//
 	
-	function handleFiles(files) {
-		if (files && files.length > 0) {
-			var file = files[0];
-			handleFile(file);
+	/**
+	 * factored out common parts for async control.
+	 * @param {function} fnc
+	 */
+	function next(fnc) {
+		if (fnc) {
+			// run fnc after "be nice"
+			window.setTimeout(function() {
+				dom.dropbox.classList.add("active");
+				try {
+					fnc();
+				} catch (e) {
+					// error stop
+					showStatus("ERROR " + e);
+					next();
+				}
+			}, 0);
+		} else {
+			// reset
+			dom.dropbox.innerHTML = "Click, or drag JSON file into the box!";
+			dom.dropbox.classList.remove("active");
 		}
 	}
+	
+	//
+	// processing
+	//
 
-	function handleFile(file) {
+	function readFile(file) {
 		console.log("file=" + file.name + " (" + file.size + "bytes)", file);
-		var reader, data;
-		reader = new global.FileReader();
-
-		reader.onload = function (eventObj) {
-			var result = {
+		
+		var reader = new window.FileReader();
+		reader.onload = function (evt) {
+			// restart
+			result = {
 				file: file,
 				times: [ Date.now() ],
 				data: null
 			};
-			window.result = result;
+			window.result = result;	// for test: make global
 
-			try {
-				result.data = eventObj.target.result;
+			// read
+			result.data = evt.target.result;
 
-				result.times[1] = Date.now();
-				result.times[0] = result.times[1] - result.times[0];
-				showStatus("reader: " + result.times[0] + "ms, data.length=" + result.data.length + "bytes");
+			// update
+			result.times[1] = Date.now();
+			result.times[0] = result.times[1] - result.times[0];
+			showStatus("reader: " + result.times[0] + "ms, data.length=" + result.data.length + "bytes");
 
-				next(parseJson, result);
-				//showStatus("Ready file " + file.name + " (" + file.size + " bytes)");
-			} catch (e) {
-				showStatus("ERROR " + e);
-			}			
+			// next step
+			next(parseJson);
+			//showStatus("Ready file " + file.name + " (" + file.size + " bytes)");
 		};
 
 		showStatus();
 		showStatus("reading file: " + file.name + " (" + file.size + "bytes)");
+		dom.dropbox.innerHTML = "Processing " + file.name + "...";
 		next(function() {
 			reader.readAsText(file);
 		});
 	}
-	
-	//
-	// event handlers
-	//
-	
-	dom.upload.addEventListener('change', function handleFileUpload(eventObj) {
-		handleFiles(eventObj.target.files);
-	}, false);
-	dom.dropbox.onclick = function () {
-		dom.upload.click();
-	};
 
-//	dom.dropbox.addEventListener("dragenter", function () {
-//		dom.dropbox.className = "dragging";
-//	}, false);
-	dom.dropbox.addEventListener("dragover", function handleDragOver(eventObj) {
-		eventObj.stopPropagation();
-		eventObj.preventDefault();
-		eventObj.dataTransfer.dropEffect = "copy";
-		dom.dropbox.className = "dragging";
-	}, false);
-	dom.dropbox.addEventListener("dragleave", function () {
-		dom.dropbox.className = "";
-	}, false);
-	
-	dom.dropbox.addEventListener("drop", function handleFileSelect(eventObj) {
-		eventObj.stopPropagation();
-		eventObj.preventDefault();
-		handleFiles(eventObj.dataTransfer.files);
-		dom.dropbox.className = "";
-	}, false);
-	dom.dropbox.addEventListener("dragend", function () {
-		dom.dropbox.className = "";
-	}, false);
-
-
-	//
-	// processing functions
-	//
-	
-	function parseJson(result) {
+	function parseJson() {
 		var json = JSON.parse(result.data);
 		result.json = json.locations ? json : { locations: json };
 
@@ -186,9 +206,15 @@
 		result.times[4] = Date.now();
 		result.times[3] = result.times[4] - result.times[3];
 		showStatus("lines: " + result.times[3] + "ms, locations=" + result.slice.length + ", lines=" + count + " (" + result.lines.length + "bytes)");
+		
+		next();
 	}
+	
+	//
+	// not used
+	//
 
-	function makeObject(result) {
+	function makeObject() {
 		result.loc = { };
 		
 		result.json.locations.forEach(function(loc, ix){
@@ -208,7 +234,6 @@
 	}
 	
 	function showLoc(millis) {
-		var result = window.result;
 		millis = millis || 1440763516780;
 		result.times[3] = Date.now();
 		
@@ -226,6 +251,10 @@
 		result.times[3] = result.times[4] - result.times[3];		
 		console.log("show: " + result.times[3] + "ms, loc[" + millis + "]", res);
 	}
+	
+	//
+	// tools
+	//
 
 	/**
 	 * helper: return print formatted date string.
