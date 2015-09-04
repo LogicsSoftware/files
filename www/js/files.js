@@ -158,8 +158,8 @@
 	 * Stores values in result.dates.
 	 */
 	function readSelected() {
-		result.dates.startMillis = new Date(dom.startDate.value + " " + dom.startTime.value);
-		result.dates.endMillis = new Date(dom.endDate.value + " " + dom.endTime.value);
+		result.dates.startMillis = new Date(dom.startDate.value + "T" + dom.startTime.value + "Z");	// MS Edge and Firefox require T and Z
+		result.dates.endMillis = new Date(dom.endDate.value + "T" + dom.endTime.value + "Z");		// MS Edge and Firefox require T and Z
 	}
 
 	//
