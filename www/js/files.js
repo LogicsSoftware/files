@@ -158,8 +158,31 @@
 	 * Stores values in result.dates.
 	 */
 	function readSelected() {
-		result.dates.startMillis = new Date(dom.startDate.value + "T" + dom.startTime.value + "Z");	// MS Edge and Firefox require T and Z
-		result.dates.endMillis = new Date(dom.endDate.value + "T" + dom.endTime.value + "Z");		// MS Edge and Firefox require T and Z
+		/*
+			Date is a beast.
+			- locations.json only shows millis, to be interpreted as UTC or GMT
+			- new Date(millis) makes a LOCAL Date obj corresponding to this UTC
+			- Date.getTime() respects LOCAL Date obj and returns millis in UTC
+			- INPUT.value are simply strings; no conversation whatever
+			- new Date(YYYY, MM -1, DD, hh, mm, ss) makes a LOCAL Date obj
+
+		 */
+		// NO: will use local time offset!!
+		//result.dates.startMillis = new Date(dom.startDate.value + "T" + dom.startTime.value + "Z").getTime();	// MS Edge and Firefox require T and Z
+		//result.dates.endMillis = new Date(dom.endDate.value + "T" + dom.endTime.value + "Z").getTime();		// MS Edge and Firefox require T and Z
+//		function getUTC(date, time) {
+//			return Date.UTC(
+//				date.substring(0, 4), date.substring(5, 7) - 1, date.substring(9),	// "2015-09-02", but month is 0..1!!!
+//				time.substring(0, 2), time.substring(3, 5), time.substring(6));		// "13:31:03"
+//		}
+		function getDate(date, time) {
+			return new Date(
+				date.substring(0, 4), date.substring(5, 7) - 1, date.substring(9),	// "2015-09-02", but month is 0..1!!!
+				time.substring(0, 2), time.substring(3, 5), time.substring(6)).getTime();		// "13:31:03"
+		}
+		result.dates.startMillis = getDate(dom.startDate.value, dom.startTime.value);
+		result.dates.endMillis = getDate(dom.endDate.value, dom.endTime.value);
+		setSelected();
 	}
 
 	//
