@@ -5,6 +5,8 @@ once you have downloaded the data from https://www.google.com/settings/takeout.
 
 Select www/index.html in your browser, from file system or via httpd server.
 
+Dir test contains test1.json, a Google locations compatible file with only 15 locations - very small, for first tests.
+
 The app is plain HTML, CSS, and JavaScript.  I wrote it mainly for playing with the JavaScript FileReader object.
 
 My Tests:
